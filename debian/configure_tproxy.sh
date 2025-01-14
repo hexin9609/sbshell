@@ -136,6 +136,21 @@ table inet sing-box {
         # 标记并重定向剩余流量
         meta l4proto { tcp, udp } meta mark set $PROXY_FWMARK
     }
+
+    # 添加 NAT 配置
+    table ip nat {
+        chain prerouting {
+            type nat hook prerouting priority -100; policy accept;
+            tcp dport 9696 dnat to 192.168.8.252:9696
+            udp dport 9696 dnat to 192.168.8.252:9696
+        }
+
+        chain postrouting {
+            type nat hook postrouting priority 100; policy accept;
+            ip saddr 192.168.8.0/24 ip daddr 192.168.8.252 masquerade
+            ip saddr 0.0.0.0/0 ip daddr 192.168.8.252 masquerade
+        }
+    }
 }
 EOF
 
